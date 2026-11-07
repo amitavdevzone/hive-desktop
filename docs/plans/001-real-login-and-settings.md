@@ -36,7 +36,7 @@ Replace the fake login with a real call to the Laravel API (`POST /api/login`, s
 - [x] Wire login page to `login` (inline 422/401/unreachable/no-URL errors, clear password, navigate to dashboard, Settings link)
 - [x] Settings page (`pages/settings/index.tsx`): base URL form, save feedback, back link
 - [x] Placeholder dashboard page
-- [ ] End-to-end verification against the Bruno local env (AC1-AC9), `cargo clippy`, `npm run build`
+- [x] End-to-end verification against the Bruno local env (AC1-AC9), `cargo clippy`, `npm run build`
 
 ## Test cases
 - AC1 -> Given base URL set and valid creds, when Sign in, then keychain entry exists and /dashboard shows.
