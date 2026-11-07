@@ -43,6 +43,30 @@ Layers: React screens -> one frontend API service -> Tauri commands -> Rust (HTT
   - Only replay user-initiated requests, not background polling.
 - **Local data**: SQLite owned by Rust (`rusqlite` or `tauri-plugin-sql`) for app data and settings. Secrets only in the keychain. Frontend has no direct filesystem access.
 
+## Folder structure
+
+```
+src/                         # React frontend
+  pages/
+    <page>/
+      index.tsx              # page layout; composes the pieces below
+      <PageComponent>.tsx    # components used only by this page
+      <Entity>Form.tsx       # one form for both add and edit
+  components/                # shared across 2+ pages (nav, modal, ...)
+  services/
+    api.ts                   # the only module that calls invoke('api_request')
+src-tauri/                   # Rust backend
+  src/
+    main.rs / lib.rs
+    commands/                # #[tauri::command] fns, thin
+    (http, db, auth modules added as they appear)
+```
+
+- Every page is a folder with an `index.tsx` that owns the main layout.
+- Page-specific components live inside that page's folder.
+- A component used by more than one page moves to `src/components/` (the same level as `pages/`). Don't pre-emptively put things there.
+- Add/edit use one form component (`<Entity>Form.tsx`) that takes optional initial values. Never create separate Add and Edit forms. It lives in the page folder.
+
 ## Conventions
 
 - Keep logic in Rust behind `#[tauri::command]` functions; React stays UI-only.
