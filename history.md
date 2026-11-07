@@ -1,0 +1,3 @@
+This application will be communicating with APIs that are built on top of a Larval framework. The authentication mechanism will be the user logs in using an email and password. In response, a sanctum token will be given which this application should store in a secure way, and the username and password should not be retained after that, and whenever any API call results in an unauthenticated error, ideally, the user should be sent back to the login page where the user can again log in and get a new Sanctum token
+
+I'm planning to build a desktop application in Rust with Tori and the front end in React. So I would like you to initialize agents.md with this thing

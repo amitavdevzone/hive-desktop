@@ -18,6 +18,17 @@ Desktop Jarvis: a desktop app built with **Tauri** (Rust backend) and a **React*
 - Rust check/test: `cd src-tauri && cargo check && cargo test`
 - Lint: `cargo clippy` (Rust), `npm run lint` (frontend)
 
+## Backend API & Auth
+
+- The app consumes a Laravel API. Auth is Laravel Sanctum bearer tokens.
+- Login: user submits email + password to the login endpoint; the response contains a Sanctum token.
+- Store the token in the OS keychain from Rust (e.g. the `keyring` crate). Never use `localStorage`, plain files, or the frontend for token storage.
+- Never persist or log the email/password. Pass them straight to the login request and drop them; clear them from React state afterward.
+- All API calls go through Rust (single HTTP client), which reads the token from the keychain and sends `Authorization: Bearer <token>`. The frontend never sees the token.
+- On a `401 Unauthenticated` from any call: delete the stored token, emit an event (e.g. `auth-expired`), and the frontend routes to the login page. Handle this once in the shared HTTP client, not per call site.
+- Logout: call the API's logout endpoint (revokes the token), then delete the keychain entry.
+- API base URL is configuration, not hardcoded.
+
 ## Conventions
 
 - Keep logic in Rust behind `#[tauri::command]` functions; React stays UI-only.
