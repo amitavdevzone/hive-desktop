@@ -1,0 +1,45 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+coverage
+*.tsbuildinfo
+
+# Rust / Tauri (src-tauri/.gitignore also covers these)
+/src-tauri/target
+/src-tauri/gen/schemas
+# Cargo.lock is committed: this is an application
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Local-only tooling config (project skills in .claude/skills are committed)
+.claude/settings.local.json
+*.local
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db

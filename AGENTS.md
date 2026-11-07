@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Desktop Jarvis: a desktop app built with **Tauri** (Rust backend) and a **React** frontend.
+HIVE: a desktop developer assistant built with **Tauri** (Rust backend) and a **React** frontend.
 
 > Status: planning. No code yet. Update this file as the stack and commands become real.
 
@@ -66,6 +66,12 @@ src-tauri/                   # Rust backend
 - Page-specific components live inside that page's folder.
 - A component used by more than one page moves to `src/components/` (the same level as `pages/`). Don't pre-emptively put things there.
 - Add/edit use one form component (`<Entity>Form.tsx`) that takes optional initial values. Never create separate Add and Edit forms. It lives in the page folder.
+
+## UI components
+
+- Use shadcn/ui (Radix, Tailwind v4) for primitives: `npx shadcn@latest add <name>` -> `src/components/ui/`. Don't hand-roll what it provides.
+- Theme tokens are in `src/index.css`, mirroring `docs/architecture/design.md` (dark only, Inter font, yellow `#FFC400` accent). Follow `design.md` for all design decisions.
+- Edit generated shadcn components only to match `design.md`.
 
 ## Conventions
 
