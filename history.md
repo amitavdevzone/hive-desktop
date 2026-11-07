@@ -1,3 +1,9 @@
+Create one more skill which will be do dash work and what it needs to do is first check if it is on an active branch and based on that
+  check if there is a plan for that if there is then it should work on the first task which is incomplete from the plan if it is not on a
+  branch then it should ask the user for a plan number to work on every time the work starts it should only work on the first incomplete
+  to-do item work on it mark it as done and then wait for the user to review if all the to-do items from the plan are done then this skill
+  should nothing and tell the user that all the tasks are done
+
 I want to create the actual login now. So, in this plan, what I want to do is when the user clicks on the login button, actually make a
   post call through the architecture that we have decided, and based on that, an API call will be made to the external API, which is the
   backend. An open question is where can I configure the backend URL? Ideally, it will be great if I can have a settings page where this can

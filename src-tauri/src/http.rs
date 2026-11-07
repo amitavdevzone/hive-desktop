@@ -74,10 +74,10 @@ pub async fn send(
     let mut req = client()
         .request(method, format!("{base}{path}"))
         .header("Accept", "application/json");
-    if with_token {
-        if let Some(token) = auth::get_token().map_err(|e| ApiError::msg(&e))? {
-            req = req.bearer_auth(token);
-        }
+    if with_token
+        && let Some(token) = auth::get_token().map_err(|e| ApiError::msg(&e))?
+    {
+        req = req.bearer_auth(token);
     }
     if let Some(body) = body {
         req = req.json(&body);
