@@ -29,8 +29,8 @@ Replace the fake login with a real call to the Laravel API (`POST /api/login`, s
 
 ## Tasks
 - [x] Add Rust deps (`reqwest` rustls, `keyring`) and the `commands/` module skeleton registered in `lib.rs` (replace `greet`)
-- [ ] Rust settings: `get_base_url` / `set_base_url` (JSON in app config dir, URL validation, delete token when URL changes) with unit tests
-- [ ] Rust HTTP core: shared `send` (relative-path and method validation, base URL, bearer from keychain), serializable error type mapping 422/401/connection failures, with unit tests
+- [x] Rust settings: `get_base_url` / `set_base_url` (JSON in app config dir, URL validation, delete token when URL changes) with unit tests
+- [x] Rust HTTP core: shared `send` (relative-path and method validation, base URL, bearer from keychain), serializable error type mapping 422/401/connection failures, with unit tests
 - [ ] Rust commands: `api_request` (401 -> delete token + emit `auth-expired`), `login` (store `access_token` in keychain), `is_authenticated`
 - [ ] Frontend: add `react-router`, `src/services/api.ts`, routes in `App.tsx` (`/login`, `/settings`, `/dashboard`), startup routing and `auth-expired` listener
 - [ ] Wire login page to `login` (inline 422/401/unreachable/no-URL errors, clear password, navigate to dashboard, Settings link)
