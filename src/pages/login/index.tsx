@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { Eye, EyeOff, Loader2, Lock, Mail, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getBaseUrl, login, type ApiError } from "@/services/api";
 import { HiveLogo } from "./HiveLogo";
 import { Honeycomb } from "./Honeycomb";
 
@@ -12,18 +14,26 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [noUrl, setNoUrl] = useState(false);
+  const navigate = useNavigate();
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setNoUrl(false);
     setLoading(true);
     try {
-      // TODO: invoke the Rust login command; Rust stores the token in the keychain.
-      // Credentials must never be kept: they are cleared below.
-      await new Promise((r) => setTimeout(r, 600));
-    } catch {
-      setError("Login failed. Check your email and password.");
+      if (!(await getBaseUrl())) {
+        setNoUrl(true);
+        return;
+      }
+      await login(email, password);
+      navigate("/dashboard");
+    } catch (err) {
+      const e = err as Partial<ApiError>;
+      setError(e.errors?.email?.[0] ?? e.message ?? "Login failed. Try again.");
     } finally {
+      // Credentials must never be kept.
       setPassword("");
       setLoading(false);
     }
@@ -32,6 +42,13 @@ export default function LoginPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-background px-6 py-8">
       <Honeycomb />
+      <Link
+        to="/settings"
+        aria-label="Settings"
+        className="absolute right-6 top-6 rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <Settings className="size-5" />
+      </Link>
       <form
         onSubmit={onSubmit}
         className="relative w-full max-w-[440px] rounded-2xl border border-border bg-card/85 px-10 pb-10 pt-9 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,196,0,0.45)] backdrop-blur-sm"
@@ -91,6 +108,12 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {noUrl && (
+            <p role="alert" className="mt-3 w-full text-sm text-destructive">
+              Set the server URL in{" "}
+              <Link to="/settings" className="underline">Settings</Link> first.
+            </p>
+          )}
           {error && (
             <p role="alert" className="mt-3 w-full text-sm text-destructive">{error}</p>
           )}
