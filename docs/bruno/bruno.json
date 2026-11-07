@@ -1,0 +1,6 @@
+{
+    "version": "1",
+    "name": "hive-be",
+    "type": "collection",
+    "ignore": ["node_modules", ".git"]
+}
