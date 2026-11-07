@@ -29,6 +29,20 @@ Desktop Jarvis: a desktop app built with **Tauri** (Rust backend) and a **React*
 - Logout: call the API's logout endpoint (revokes the token), then delete the keychain entry.
 - API base URL is configuration, not hardcoded.
 
+## Architecture
+
+Layers: React screens -> one frontend API service -> Tauri commands -> Rust (HTTP client, SQLite, keychain).
+
+- **Frontend**: UI only. Screens never call `fetch`/`invoke` directly; they use a single service module (`src/services/api.ts`) that wraps `invoke('api_request', { method, path, body })`. Local-data access goes through similarly thin wrappers around commands.
+- **`api_request` (Rust)**: the only network path.
+  - Accepts method + relative path + body only. Rust prepends the configured base URL. Never accept a full URL or caller-supplied `Authorization` header.
+  - Reads the token from the keychain and adds the bearer header.
+  - On 401: delete the token, keep the request in memory (never on disk), emit `auth-expired`, and leave the original `invoke` pending.
+  - After successful login: replay the held request and resolve the original call. Screens need no retry logic.
+  - Drop the held request after a timeout (a few minutes), on login cancel, or if a different account logs in. Hold one pending request; concurrent 401s share a single re-login.
+  - Only replay user-initiated requests, not background polling.
+- **Local data**: SQLite owned by Rust (`rusqlite` or `tauri-plugin-sql`) for app data and settings. Secrets only in the keychain. Frontend has no direct filesystem access.
+
 ## Conventions
 
 - Keep logic in Rust behind `#[tauri::command]` functions; React stays UI-only.
