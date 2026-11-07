@@ -18,7 +18,7 @@ pub struct ApiError {
 }
 
 impl ApiError {
-    fn msg(message: &str) -> Self {
+    pub fn msg(message: &str) -> Self {
         Self { status: None, message: message.into(), errors: None }
     }
 }

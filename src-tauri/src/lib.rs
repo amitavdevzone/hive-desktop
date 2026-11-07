@@ -7,6 +7,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
+            commands::api::api_request,
+            commands::api::login,
+            commands::api::is_authenticated,
             commands::settings::get_base_url,
             commands::settings::set_base_url
         ])

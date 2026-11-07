@@ -14,6 +14,12 @@ pub fn get_token() -> Result<Option<String>, String> {
     }
 }
 
+/// Store (or replace) the token.
+pub fn set_token(token: &str) -> Result<(), String> {
+    let entry = Entry::new(SERVICE, USER).map_err(|e| e.to_string())?;
+    entry.set_password(token).map_err(|e| e.to_string())
+}
+
 /// Delete the stored token. A missing token is not an error.
 pub fn delete_token() -> Result<(), String> {
     let entry = Entry::new(SERVICE, USER).map_err(|e| e.to_string())?;
