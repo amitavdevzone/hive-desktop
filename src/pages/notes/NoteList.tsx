@@ -27,8 +27,15 @@ export function NoteList({
             <div className="truncate text-sm font-medium text-foreground">{n.title}</div>
             <div className="text-xs text-muted-foreground">
               {new Date(n.updated_at).toLocaleString()}
-              {n.status !== "synced" && " · unsynced"}
             </div>
+            {n.status !== "synced" && (
+              <div
+                className={cn("truncate text-xs", n.last_error ? "text-destructive" : "text-primary")}
+                title={n.last_error ?? undefined}
+              >
+                Unsynced{n.last_error && `: ${n.last_error}`}
+              </div>
+            )}
           </button>
         </li>
       ))}

@@ -97,6 +97,11 @@ export function NoteForm({
       )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {note.status !== "synced" && (
+        <p className={note.last_error ? "text-sm text-destructive" : "text-sm text-primary"}>
+          Unsynced{note.last_error && `: ${note.last_error}`}
+        </p>
+      )}
       <TagInput tags={tags} onChange={edit(setTags, "tags")} />
 
       <Dialog open={confirm} onOpenChange={setConfirm}>

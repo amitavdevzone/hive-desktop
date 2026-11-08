@@ -5,12 +5,12 @@ use std::{collections::HashMap, sync::OnceLock, time::Duration};
 use reqwest::{Client, Method};
 use serde::Serialize;
 use serde_json::Value;
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 
 use crate::{auth, commands::settings::read_base_url};
 
 /// Serializable error handed to the frontend (Laravel 422/401 bodies mapped).
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ApiError {
     pub status: Option<u16>,
     pub message: String,
@@ -87,6 +87,22 @@ pub async fn send(
     let status = res.status();
     let json: Value = res.json().await.unwrap_or(Value::Null);
     if status.is_success() { Ok(json) } else { Err(error_from_body(status.as_u16(), &json)) }
+}
+
+/// `send` with the token, plus the one place 401 is handled: a dead token is
+/// dropped and the UI told to show login. Every authenticated caller uses this.
+pub async fn send_authed(
+    app: &AppHandle,
+    method: &str,
+    path: &str,
+    body: Option<Value>,
+) -> Result<Value, ApiError> {
+    let result = send(app, method, path, body, true).await;
+    if matches!(&result, Err(e) if e.status == Some(401)) {
+        let _ = auth::delete_token();
+        let _ = app.emit("auth-expired", ());
+    }
+    result
 }
 
 #[cfg(test)]

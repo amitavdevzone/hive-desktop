@@ -1,13 +1,15 @@
 use std::{fs, path::{Path, PathBuf}};
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, State};
 
-use crate::auth;
+use crate::{auth, db::{self, Db}};
 
 #[derive(Default, Serialize, Deserialize)]
 struct Settings {
     base_url: Option<String>,
+    /// None = never set = auto.
+    auto_sync: Option<bool>,
 }
 
 fn settings_path(app: &AppHandle) -> Result<PathBuf, String> {
@@ -60,13 +62,29 @@ pub fn get_base_url(app: AppHandle) -> Result<Option<String>, String> {
     read_base_url(&app)
 }
 
-/// A different API means a different account: drop the old token.
+/// A different API means a different account: drop the old token and the
+/// notes cached from the old server.
 #[tauri::command]
-pub fn set_base_url(app: AppHandle, url: String) -> Result<(), String> {
+pub fn set_base_url(app: AppHandle, db: State<Db>, url: String) -> Result<(), String> {
     if store_base_url(&settings_path(&app)?, &url)? {
         auth::delete_token()?;
+        let conn = db.0.lock().map_err(|e| e.to_string())?;
+        db::clear(&conn).map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_auto_sync(app: AppHandle) -> Result<bool, String> {
+    Ok(load(&settings_path(&app)?).auto_sync.unwrap_or(true))
+}
+
+#[tauri::command]
+pub fn set_auto_sync(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let path = settings_path(&app)?;
+    let mut settings = load(&path);
+    settings.auto_sync = Some(enabled);
+    save(&path, &settings)
 }
 
 #[cfg(test)]
@@ -91,6 +109,13 @@ mod tests {
         assert!(store_base_url(&path, "https://b.test").unwrap());
         assert_eq!(load(&path).base_url.as_deref(), Some("https://b.test"));
         assert!(store_base_url(&path, "nope").is_err());
+
+        // changing the URL must keep other settings
+        let mut s = load(&path);
+        s.auto_sync = Some(false);
+        save(&path, &s).unwrap();
+        store_base_url(&path, "https://c.test").unwrap();
+        assert_eq!(load(&path).auto_sync, Some(false));
         let _ = fs::remove_file(&path);
     }
 }

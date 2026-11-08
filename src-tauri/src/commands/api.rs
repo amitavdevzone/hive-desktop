@@ -1,13 +1,12 @@
 use serde_json::{Value, json};
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
 
 use crate::{
     auth,
-    http::{ApiError, send},
+    http::{ApiError, send, send_authed},
 };
 
-/// The only network path for the frontend. A 401 means the token is dead:
-/// drop it and tell the UI to show login.
+/// The only network path for the frontend (401 handling lives in `send_authed`).
 #[tauri::command]
 pub async fn api_request(
     app: AppHandle,
@@ -15,12 +14,7 @@ pub async fn api_request(
     path: String,
     body: Option<Value>,
 ) -> Result<Value, ApiError> {
-    let result = send(&app, &method, &path, body, true).await;
-    if matches!(&result, Err(e) if e.status == Some(401)) {
-        let _ = auth::delete_token();
-        let _ = app.emit("auth-expired", ());
-    }
-    result
+    send_authed(&app, &method, &path, body).await
 }
 
 /// Credentials go straight to the API and are dropped; only the token is kept,

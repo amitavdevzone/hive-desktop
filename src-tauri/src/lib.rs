@@ -20,6 +20,8 @@ pub fn run() {
             commands::api::is_authenticated,
             commands::settings::get_base_url,
             commands::settings::set_base_url,
+            commands::settings::get_auto_sync,
+            commands::settings::set_auto_sync,
             commands::notes::list_notes,
             commands::notes::get_note,
             commands::notes::sync_now,
