@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import Markdown from "react-markdown";
 import { saveNote, type Note } from "@/services/api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MarkdownEditor } from "./MarkdownEditor";
 import { TagInput } from "./TagInput";
 
 /** Edits a note, saving to SQLite after a short pause. Remount (key) per note. */
@@ -22,7 +22,6 @@ export function NoteForm({
   const [text, setText] = useState(note.text);
   const [format, setFormat] = useState(note.format);
   const [tags, setTags] = useState(note.tags);
-  const [preview, setPreview] = useState(note.format === "markdown");
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
 
@@ -63,10 +62,9 @@ export function NoteForm({
           value={format}
           onValueChange={(v) => {
             edit(setFormat, "format")(v as Note["format"]);
-            setPreview(v === "markdown");
           }}
         >
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-36 data-[size=default]:h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -74,19 +72,14 @@ export function NoteForm({
             <SelectItem value="markdown">Markdown</SelectItem>
           </SelectContent>
         </Select>
-        {md && (
-          <Button variant="outline" onClick={() => setPreview(!preview)}>
-            {preview ? "Edit" : "Preview"}
-          </Button>
-        )}
         <Button variant="destructive" onClick={() => setConfirm(true)}>
           Delete
         </Button>
       </div>
 
-      {md && preview ? (
-        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto text-sm text-foreground [&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_ul]:list-disc [&_ul]:pl-5">
-          <Markdown>{text}</Markdown>
+      {md ? (
+        <div className="min-h-0 flex-1 basis-0 space-y-2 rounded-md border border-border bg-input p-3 [&_.ProseMirror]:min-h-full [&_.ProseMirror]:outline-none overflow-y-auto font-serif text-base text-foreground [&_code]:font-[inherit] [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1]:font-bold [&_h2]:font-semibold [&_h3]:font-semibold [&_h1]:mt-4 [&_h2]:mt-3 [&_h3]:mt-2 [&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_ul]:list-disc [&_ul]:pl-5">
+          <MarkdownEditor key={format} initial={text} onChange={edit(setText, "text")} />
         </div>
       ) : (
         <Textarea

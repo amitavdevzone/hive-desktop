@@ -26,8 +26,8 @@ Placeholder screen shown after login. Content to come.
 
 Offline-first notes, available from **Notes** in the top bar (the HIVE logo returns to the dashboard). Notes live in a local SQLite database owned by Rust; the screen reads and writes only that database, so notes stay visible and editable when the server is unreachable.
 
-- **Layout:** the list (title, last updated, newest first) takes the left 30%; the selected note takes the right 70%. **New note** creates one.
-- **Editing:** title, format (Plain or Markdown), body and tags. Changes save locally about half a second after you stop typing. Markdown notes have a Preview/Edit toggle. Delete asks for confirmation.
+- **Layout:** the list (title, last updated, newest first) takes the left 20%; the selected note takes the right 80%. **New note** creates one.
+- **Editing:** title, format (Plain or Markdown), body and tags. Changes save locally about half a second after you stop typing. Markdown notes use a live editor: Markdown renders as you type, in the same window (Noto Serif). Delete asks for confirmation.
 - **Tags:** type in the tag field to get suggestions from tags already used locally; press Enter to add a new one. Tags are lowercased and de-duplicated.
 - **Sync:** pushes local changes to the server, then pulls the server's notes. If a note has unsynced local changes, the server's version never overwrites it. A synced note deleted on the server disappears locally.
   - **Auto sync** (on by default, toggle in the top bar) runs every 2 minutes. With it off, nothing runs until you press **Sync**. Edits are saved locally either way. The setting is kept across restarts.

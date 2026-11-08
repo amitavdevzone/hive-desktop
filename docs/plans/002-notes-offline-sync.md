@@ -9,9 +9,9 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 
 ## Requirements
 - Top nav: HIVE logo links to the dashboard; a Notes link opens `/notes`.
-- Notes page: 30/70 split. Left: list (title, last updated, unsynced status), newest updated first. Right: the selected note.
+- Notes page: 20/80 split. Left: list (title, last updated, unsynced status), newest updated first. Right: the selected note.
 - Notes are pulled from the server into SQLite and rendered from it.
-- Formats: `plain` (shown as text) and `markdown` (Preview/Edit toggle; Preview renders, Edit is a textarea).
+- Formats: `plain` (shown as text) and `markdown` (edited in one window with a live Milkdown editor: Markdown renders as you type, in Noto Serif).
 - Tags at the bottom of a note: add/remove chips with autocomplete from existing local tags (shadcn Command + Popover).
 - Create, edit, delete notes; every change is saved to SQLite first (debounced), even in manual mode.
 - Sync: push then pull; local wins on conflict. A failed push leaves the note unsynced, stores `last_error`, shows it in the UI, and does nothing else.
@@ -22,9 +22,9 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - [x] Slice 2: add `rusqlite` (bundled); `db.rs` with schema, `Mutex<Connection>` managed state opened in `setup`
 - [x] Slice 2: `list_notes` and `get_note` commands; frontend wrappers in `services/api.ts`
 - [x] Slice 2: pull half of `sync.rs` (walk all pages, upsert synced rows, remove remotely deleted synced rows) and `sync_now`; emit `notes-changed`
-- [x] Slice 2: 30/70 Notes page with `NoteList` and read-only view (plain text, markdown preview via `react-markdown`)
+- [x] Slice 2: 20/80 Notes page with `NoteList` and read-only view (plain text, markdown rendered)
 - [x] Slice 3: `create_note`, `save_note` (validation and tag normalisation), `delete_note`, `list_tag_names` commands
-- [x] Slice 3: `NoteForm` (title, format, body, Delete) with debounced save and Markdown Preview/Edit toggle; add shadcn `textarea`, `select`, `dialog`
+- [x] Slice 3: `NoteForm` (title, format, body, Delete) with debounced save and Markdown live editor (`MarkdownEditor`, Milkdown); add shadcn `textarea`, `select`, `dialog`
 - [x] Slice 3: `TagInput` using shadcn Command + Popover with autocomplete from local tags
 - [x] Slice 4: push half of `sync.rs` (POST/PUT/DELETE, `last_error`, stop on network error or 401)
 - [x] Slice 4: extract the 401 handling from `api_request` into a shared helper and reuse it in sync
@@ -35,10 +35,10 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 
 ## Acceptance criteria
 1. AC1: The top nav shows the HIVE logo and a Notes link on authenticated pages; the logo opens `/dashboard` and Notes opens `/notes`.
-2. AC2: `/notes` shows a 30/70 layout with the list on the left and the selected note on the right.
+2. AC2: `/notes` shows a 20/80 layout with the list on the left and the selected note on the right.
 3. AC3: After login the server notes are in local SQLite and the list renders from it (still visible when the server is unreachable).
 4. AC4: The list is ordered by last updated, newest first, each row showing title and last updated time.
-5. AC5: A plain note is shown as text; a markdown note has a Preview/Edit toggle (Preview renders markdown, Edit shows a textarea).
+5. AC5: A plain note is shown as text; a markdown note is edited in a single live editor that renders Markdown as you type (no separate preview).
 6. AC6: Tags can be added and removed on a note, with autocomplete suggestions from existing tags.
 7. AC7: Creating, editing or deleting a note writes to SQLite immediately and marks the note unsynced.
 8. AC8: When a sync succeeds the note is marked synced and the server has the change.
@@ -51,10 +51,10 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 
 ## Test cases
 - AC1 -> Given I am logged in, when I click the logo, then `/dashboard` opens; when I click Notes, then `/notes` opens.
-- AC2 -> Given I open `/notes`, then the list takes about 30% width and the note about 70%.
+- AC2 -> Given I open `/notes`, then the list takes about 20% width and the note about 80%.
 - AC3 -> Given a first sync completed, when the server is stopped and I reopen Notes, then the same notes are listed. (Rust test: pull upserts pages into an in-memory DB.)
 - AC4 -> Given notes with different updated times, then the list is newest first; editing an older note moves it to the top. (Rust test on `list_notes` ordering.)
-- AC5 -> Given a plain note, then text is shown; given a markdown note, when I toggle Preview, then `**bold**` renders bold, and Edit shows a textarea.
+- AC5 -> Given a plain note, then text is shown; given a markdown note, when I type `# Title` or `**bold**`, then it renders as a heading or bold immediately in the same window.
 - AC6 -> Given existing tags `server` and `office`, when I type `se`, then `server` is suggested; adding then removing a tag updates the note.
 - AC7 -> Given I edit a synced note, then SQLite row is `dirty` with a new `updated_at`. (Rust test.) Deleting a never-pushed note removes the row; deleting a synced note marks it `deleted`.
 - AC8 -> Given a dirty note, when sync succeeds, then it is `synced` and the API returns the change.
@@ -74,8 +74,9 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - Sync mode is global, stored in the existing `settings.json` `Settings` struct.
 - Manual mode still saves edits locally at once; the button only controls the server push.
 - Invalid-for-server notes are kept locally and show the server message (no duplicated validation in the app).
-- Tag autocomplete uses shadcn Command + Popover per `docs/architecture/index.md` ("don't hand-roll primitives shadcn provides"). New dependencies: `rusqlite`, `react-markdown`, and `cmdk` via shadcn.
+- Tag autocomplete uses shadcn Command + Popover per `docs/architecture/index.md` ("don't hand-roll primitives shadcn provides"). New dependencies: `rusqlite`, `@milkdown/kit` and `@milkdown/react`, `@fontsource-variable/noto-serif`, and `cmdk` via shadcn.
 - `HiveLogo` moves from `pages/login/` to `src/components/` because it is now used by more than one place.
+- Markdown notes use a Milkdown (ProseMirror) live editor instead of a textarea plus preview: one window, renders as you type, still stores plain Markdown so sync is unchanged. It replaced `react-markdown` (removed). Markdown text is shown in Noto Serif (bundled via fontsource, offline); the rest of the UI stays Inter.
 - UI follows `docs/architecture/design.md` (dark, `#FFC400` accent).
 - Local timestamps are normalised to UTC `YYYY-MM-DDTHH:MM:SSZ` through SQLite `strftime` so string ordering is consistent.
 
