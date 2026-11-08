@@ -1,0 +1,24 @@
+meta {
+  name: create note
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/notes
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+body:json {
+  {
+    "title": "Server setup 2 ",
+    "text": "Install **nginx** and php-fpm.sdasds ",
+    "format": "markdown",
+    "tags": ["server", "office"]
+  }
+}

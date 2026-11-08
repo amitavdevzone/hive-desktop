@@ -1,0 +1,24 @@
+meta {
+  name: update note
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/notes/1
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+body:json {
+  {
+    "title": "Server setup (updated)",
+    "text": "Install **nginx**, php-fpm and redis.",
+    "format": "markdown",
+    "tags": ["server"]
+  }
+}

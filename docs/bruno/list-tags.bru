@@ -1,0 +1,15 @@
+meta {
+  name: list tags
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/tags
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}

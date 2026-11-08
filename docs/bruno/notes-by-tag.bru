@@ -1,0 +1,19 @@
+meta {
+  name: notes by tag
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/notes?tag=server
+  body: none
+  auth: inherit
+}
+
+params:query {
+  tag: server
+}
+
+headers {
+  Accept: application/json
+}
