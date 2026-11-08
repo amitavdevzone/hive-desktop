@@ -1,0 +1,15 @@
+meta {
+  name: show note
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/notes/1
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}

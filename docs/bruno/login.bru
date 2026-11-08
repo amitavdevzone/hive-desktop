@@ -16,11 +16,11 @@ headers {
 
 body:json {
   {
-    "email": "test@example.com",
-    "password": "password"
+    "email": "reachme@amitavroy.com",
+    "password": "Password@123"
   }
 }
 
 script:post-response {
-  bru.setGlobalEnvVar("accessToken", res.body.access_token);
+  bru.setVar("accessToken", res.body.access_token);
 }

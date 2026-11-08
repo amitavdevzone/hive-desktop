@@ -1,0 +1,19 @@
+meta {
+  name: search notes
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/notes?search=nginx
+  body: none
+  auth: inherit
+}
+
+params:query {
+  search: nginx
+}
+
+headers {
+  Accept: application/json
+}
