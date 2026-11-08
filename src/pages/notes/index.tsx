@@ -39,7 +39,7 @@ export default function NotesPage() {
 
   return (
     <main className="flex h-full">
-      <aside className="w-[30%] overflow-y-auto border-r border-border">
+      <aside className="w-[20%] overflow-y-auto border-r border-border">
         <div className="border-b border-border p-2">
           <Button className="w-full" onClick={onNew}>
             New note
@@ -47,7 +47,7 @@ export default function NotesPage() {
         </div>
         <NoteList notes={notes} selectedId={selectedId} onSelect={setSelectedId} />
       </aside>
-      <section className="w-[70%] overflow-y-auto">
+      <section className="w-[80%] overflow-y-auto">
         {selected ? (
           <NoteForm key={selected.id} note={selected} onSaved={load} onDelete={() => onDelete(selected.id)} />
         ) : (
