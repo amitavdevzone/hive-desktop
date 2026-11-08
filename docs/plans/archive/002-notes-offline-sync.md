@@ -1,7 +1,7 @@
 # Notes: top nav + offline-first notes with SQLite sync
 
 Ticket: #3 (https://github.com/amitavdevzone/hive-desktop/issues/3)
-Status: planned
+Status: done
 Date: 2026-11-08
 
 ## Summary
