@@ -52,12 +52,12 @@ Date: <YYYY-MM-DD>
 ## Requirements
 - ...
 
+## Tasks
+- [ ] <small, independently reviewable implementation step, in build order>
+
 ## Acceptance criteria
 1. AC1: ...
 2. AC2: ...
-
-## Tasks
-- [ ] <small, independently reviewable implementation step, in build order>
 
 ## Test cases
 <One or more per AC, e.g. "AC1 -> Given ..., when ..., then ...">
