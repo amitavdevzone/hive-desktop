@@ -9,13 +9,13 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 
 ## Requirements
 - Top nav: HIVE logo links to the dashboard; a Notes link opens `/notes`.
-- Notes page: 20/80 split. Left: list (title, last updated, unsynced status), newest updated first. Right: the selected note.
+- Notes page: 20/80 split. Left: list (title, last updated, unsynced status), newest updated first. Right: the selected note. Opening the page selects the newest note by default.
 - Notes are pulled from the server into SQLite and rendered from it.
 - Formats: `plain` (shown as text) and `markdown` (edited in one window with a live Milkdown editor: Markdown renders as you type, in Noto Serif).
 - Tags at the bottom of a note: add/remove chips with autocomplete from existing local tags (shadcn Command + Popover).
 - Create, edit, delete notes; every change is saved to SQLite first (debounced), even in manual mode.
 - Sync: push then pull; local wins on conflict. A failed push leaves the note unsynced, stores `last_error`, shows it in the UI, and does nothing else.
-- Global sync mode: auto (every 2 minutes) or manual (Save/Sync button).
+- Global sync mode: auto (every 2 minutes) or manual (Auto sync toggle and Sync button in the Notes page header). The 2-minute timer stays global (`AppLayout`), so auto sync runs on every authenticated page.
 
 ## Tasks
 - [x] Slice 1: `AppLayout` with top nav (logo to `/dashboard`, Notes link), move `HiveLogo` to `src/components/`, nest `/dashboard` and `/notes` under the layout route, empty Notes page
@@ -29,7 +29,7 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - [x] Slice 4: push half of `sync.rs` (POST/PUT/DELETE, `last_error`, stop on network error or 401)
 - [x] Slice 4: extract the 401 handling from `api_request` into a shared helper and reuse it in sync
 - [x] Slice 4: unsynced indicator in list and note with error reason; wipe local DB when the base URL changes
-- [x] Slice 4: `auto_sync` setting (get/set commands, in `settings.json`), top-bar toggle and Sync button, 2-minute timer in `AppLayout`
+- [x] Slice 4: `auto_sync` setting (get/set commands, in `settings.json`), Auto sync toggle and Sync button (Notes page header, state shared from `AppLayout` via router outlet context), 2-minute timer in `AppLayout`
 - [x] Rust unit tests on in-memory SQLite; `cargo check`/`clippy`/`test`, `npm run build`/`lint`
 - [x] Update `docs/wiki/index.md` with a Notes section
 
@@ -48,6 +48,7 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 12. AC12: The sync mode is a global setting that persists across restarts.
 13. AC13: A 401 during sync routes to login and keeps unsynced local edits.
 14. AC14: A note the server rejects (e.g. no tags) stays local with the server's message shown.
+15. AC15: Opening `/notes` selects the newest note by default; if the selected note disappears (deleted or removed by a sync), the newest remaining note is selected.
 
 ## Test cases
 - AC1 -> Given I am logged in, when I click the logo, then `/dashboard` opens; when I click Notes, then `/notes` opens.
@@ -64,6 +65,7 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - AC12 -> Given I switch to manual and restart the app, then it is still manual.
 - AC13 -> Given an expired token, when sync runs, then `auth-expired` routes to login and dirty rows remain.
 - AC14 -> Given a note with no tags, when it is pushed, then the 422 message is shown on it and it stays dirty.
+- AC15 -> Given several notes, when I open `/notes`, then the top (newest) note is selected and shown; when I delete it, then the next newest is selected.
 
 ## Architectural decisions
 - SQLite via `rusqlite` (bundled), owned by Rust, so the frontend never touches SQL (AGENTS.md: local data owned by Rust). Approved dependency.
@@ -77,6 +79,7 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - Tag autocomplete uses shadcn Command + Popover per `docs/architecture/index.md` ("don't hand-roll primitives shadcn provides"). New dependencies: `rusqlite`, `@milkdown/kit` and `@milkdown/react`, `@fontsource-variable/noto-serif`, and `cmdk` via shadcn.
 - `HiveLogo` moves from `pages/login/` to `src/components/` because it is now used by more than one place.
 - Markdown notes use a Milkdown (ProseMirror) live editor instead of a textarea plus preview: one window, renders as you type, still stores plain Markdown so sync is unchanged. It replaced `react-markdown` (removed). Markdown text is shown in Noto Serif (bundled via fontsource, offline); the rest of the UI stays Inter.
+- The Notes screen follows the design mockup: page header (title, subtitle, Auto sync and Sync), note cards, rounded editor card with a footer (sync status, last updated, tags). The sync controls moved from the top bar into this header; the top bar keeps the logo, wordmark and Notes link.
 - UI follows `docs/architecture/design.md` (dark, `#FFC400` accent).
 - Local timestamps are normalised to UTC `YYYY-MM-DDTHH:MM:SSZ` through SQLite `strftime` so string ordering is consistent.
 
@@ -84,7 +87,8 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - Conflict UI or merge; per-note sync mode.
 - Logout and wiping the DB on account switch (no logout exists yet).
 - Server-side changes (`updated_since`, soft deletes).
-- Note search and tag filter UI.
+- Note search and tag filter UI (the design mockup shows a search box and filter button; not built).
+- Duplicate note, per-row "..." menu, and Markdown task-list checkboxes (shown in the mockup; not built).
 
 ## Open questions
 - Known gap: with no logout, a different account on the same server would see the previous account's cached notes until the base URL changes.

@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router";
-import { Loader2, RefreshCw } from "lucide-react";
 import { HiveLogo } from "@/components/HiveLogo";
-import { Button } from "@/components/ui/button";
 import { getAutoSync, setAutoSync, syncNow } from "@/services/api";
+
+/** Shared with pages through the router's outlet context. */
+export type SyncControls = {
+  auto: boolean;
+  toggleAuto: () => void;
+  syncing: boolean;
+  sync: () => void;
+};
 
 const SYNC_INTERVAL_MS = 2 * 60 * 1000;
 
@@ -35,24 +41,17 @@ export default function AppLayout() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      <nav className="flex items-center gap-6 border-b border-border px-4 py-2">
-        <Link to="/dashboard" aria-label="Dashboard">
+      <nav className="flex items-center gap-8 border-b border-border px-6 py-3">
+        <Link to="/dashboard" aria-label="Dashboard" className="flex items-center gap-3">
           <HiveLogo className="h-8 w-8" />
+          <span className="text-lg font-semibold uppercase tracking-[0.2em] text-foreground">Hive</span>
         </Link>
         <Link to="/notes" className="text-sm text-muted-foreground hover:text-primary">
           Notes
         </Link>
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={toggleAuto}>
-            Auto sync: {auto ? "on" : "off"}
-          </Button>
-          <Button size="sm" onClick={sync} disabled={syncing}>
-            {syncing ? <Loader2 className="animate-spin" /> : <RefreshCw />} Sync
-          </Button>
-        </div>
       </nav>
       <div className="min-h-0 flex-1">
-        <Outlet />
+        <Outlet context={{ auto, toggleAuto, syncing, sync } satisfies SyncControls} />
       </div>
     </div>
   );
