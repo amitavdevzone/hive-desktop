@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getBaseUrl, login, type ApiError } from "@/services/api";
-import { HiveLogo } from "./HiveLogo";
+import { HiveLogo } from "@/components/HiveLogo";
 import { Honeycomb } from "./Honeycomb";
 
 export default function LoginPage() {

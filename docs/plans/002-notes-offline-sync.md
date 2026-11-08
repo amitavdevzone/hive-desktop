@@ -18,11 +18,11 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - Global sync mode: auto (every 2 minutes) or manual (Save/Sync button).
 
 ## Tasks
-- [ ] Slice 1: `AppLayout` with top nav (logo to `/dashboard`, Notes link), move `HiveLogo` to `src/components/`, nest `/dashboard` and `/notes` under the layout route, empty Notes page
-- [ ] Slice 2: add `rusqlite` (bundled); `db.rs` with schema, `Mutex<Connection>` managed state opened in `setup`
-- [ ] Slice 2: `list_notes` and `get_note` commands; frontend wrappers in `services/api.ts`
-- [ ] Slice 2: pull half of `sync.rs` (walk all pages, upsert synced rows, remove remotely deleted synced rows) and `sync_now`; emit `notes-changed`
-- [ ] Slice 2: 30/70 Notes page with `NoteList` and read-only view (plain text, markdown preview via `react-markdown`)
+- [x] Slice 1: `AppLayout` with top nav (logo to `/dashboard`, Notes link), move `HiveLogo` to `src/components/`, nest `/dashboard` and `/notes` under the layout route, empty Notes page
+- [x] Slice 2: add `rusqlite` (bundled); `db.rs` with schema, `Mutex<Connection>` managed state opened in `setup`
+- [x] Slice 2: `list_notes` and `get_note` commands; frontend wrappers in `services/api.ts`
+- [x] Slice 2: pull half of `sync.rs` (walk all pages, upsert synced rows, remove remotely deleted synced rows) and `sync_now`; emit `notes-changed`
+- [x] Slice 2: 30/70 Notes page with `NoteList` and read-only view (plain text, markdown preview via `react-markdown`)
 - [ ] Slice 3: `create_note`, `save_note` (validation and tag normalisation), `delete_note`, `list_tag_names` commands
 - [ ] Slice 3: `NoteForm` (title, format, body, Delete) with debounced save and Markdown Preview/Edit toggle; add shadcn `textarea`, `select`, `dialog`
 - [ ] Slice 3: `TagInput` using shadcn Command + Popover with autocomplete from local tags
