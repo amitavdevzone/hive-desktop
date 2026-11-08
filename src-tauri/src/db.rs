@@ -74,6 +74,84 @@ pub fn get_note(conn: &Connection, id: i64) -> rusqlite::Result<Option<Note>> {
     rows.next().transpose()
 }
 
+const NOW: &str = "strftime('%Y-%m-%dT%H:%M:%SZ','now')";
+
+/// Trim, lowercase, drop empties/duplicates, keep order.
+pub fn normalize_tags(tags: &[String]) -> Vec<String> {
+    let mut out: Vec<String> = vec![];
+    for t in tags {
+        let t = t.trim().to_lowercase();
+        if !t.is_empty() && t.chars().count() <= 50 && !out.contains(&t) {
+            out.push(t);
+        }
+    }
+    out
+}
+
+pub fn create_note(conn: &Connection) -> Result<Note, String> {
+    conn.execute(
+        &format!("INSERT INTO notes (title, updated_at) VALUES ('Untitled', {NOW})"),
+        [],
+    )
+    .map_err(|e| e.to_string())?;
+    get_note(conn, conn.last_insert_rowid())
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "Note not found".into())
+}
+
+/// Save locally and mark dirty; the server push happens in sync.
+pub fn save_note(
+    conn: &Connection,
+    id: i64,
+    title: &str,
+    text: &str,
+    format: &str,
+    tags: &[String],
+) -> Result<Note, String> {
+    let title = title.trim();
+    if title.is_empty() || title.chars().count() > 255 {
+        return Err("Title is required (max 255 characters)".into());
+    }
+    if !matches!(format, "plain" | "markdown") {
+        return Err("Format must be plain or markdown".into());
+    }
+    let tags = serde_json::to_string(&normalize_tags(tags)).map_err(|e| e.to_string())?;
+    let n = conn
+        .execute(
+            &format!(
+                "UPDATE notes SET title=?1, text=?2, format=?3, tags=?4, status='dirty',
+                 last_error=NULL, updated_at={NOW} WHERE id=?5 AND status != 'deleted'"
+            ),
+            (title, text, format, tags, id),
+        )
+        .map_err(|e| e.to_string())?;
+    if n == 0 {
+        return Err("Note not found".into());
+    }
+    get_note(conn, id).map_err(|e| e.to_string())?.ok_or_else(|| "Note not found".into())
+}
+
+/// Never-pushed notes vanish; pushed ones are tombstoned until sync deletes them remotely.
+pub fn delete_note(conn: &Connection, id: i64) -> Result<(), String> {
+    conn.execute("DELETE FROM notes WHERE id=?1 AND remote_id IS NULL", [id])
+        .map_err(|e| e.to_string())?;
+    conn.execute(
+        &format!("UPDATE notes SET status='deleted', updated_at={NOW} WHERE id=?1"),
+        [id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn list_tag_names(conn: &Connection) -> rusqlite::Result<Vec<String>> {
+    conn.prepare(
+        "SELECT DISTINCT j.value FROM notes, json_each(notes.tags) j
+         WHERE notes.status != 'deleted' ORDER BY j.value",
+    )?
+    .query_map([], |r| r.get(0))?
+    .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -99,5 +177,34 @@ mod tests {
         assert_eq!(titles, ["new", "old"]);
         assert!(get_note(&c, 1).unwrap().is_some());
         assert!(get_note(&c, 99).unwrap().is_none());
+    }
+
+    #[test]
+    fn save_marks_dirty_and_validates() {
+        let c = mem();
+        let id = create_note(&c).unwrap().id;
+        c.execute("UPDATE notes SET status='synced', remote_id=7 WHERE id=?1", [id]).unwrap();
+        let tags = ["  Server ".to_string(), "server".into(), "".into(), "Office".into()];
+        let n = save_note(&c, id, " Hi ", "body", "markdown", &tags).unwrap();
+        assert_eq!((n.title.as_str(), n.status.as_str()), ("Hi", "dirty"));
+        assert_eq!(n.tags, ["server", "office"]);
+        assert!(save_note(&c, id, "  ", "", "plain", &[]).is_err());
+        assert!(save_note(&c, id, "t", "", "html", &[]).is_err());
+        assert!(save_note(&c, 99, "t", "", "plain", &[]).is_err());
+        assert_eq!(list_tag_names(&c).unwrap(), ["office", "server"]);
+    }
+
+    #[test]
+    fn delete_removes_unpushed_and_tombstones_pushed() {
+        let c = mem();
+        let local = create_note(&c).unwrap().id;
+        let pushed = create_note(&c).unwrap().id;
+        c.execute("UPDATE notes SET status='synced', remote_id=7 WHERE id=?1", [pushed]).unwrap();
+        delete_note(&c, local).unwrap();
+        delete_note(&c, pushed).unwrap();
+        assert!(get_note(&c, local).unwrap().is_none());
+        assert_eq!(get_note(&c, pushed).unwrap().unwrap().status, "deleted");
+        assert!(list_notes(&c).unwrap().is_empty());
+        assert!(list_tag_names(&c).unwrap().is_empty());
     }
 }

@@ -37,3 +37,12 @@ export const listNotes = () => invoke<Note[]>("list_notes");
 export const getNote = (id: number) => invoke<Note | null>("get_note", { id });
 
 export const syncNow = () => invoke<void>("sync_now");
+
+export const createNote = () => invoke<Note>("create_note");
+
+export const saveNote = (n: Pick<Note, "id" | "title" | "text" | "format" | "tags">) =>
+  invoke<Note>("save_note", { ...n });
+
+export const deleteNote = (id: number) => invoke<void>("delete_note", { id });
+
+export const listTagNames = () => invoke<string[]>("list_tag_names");

@@ -23,9 +23,9 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - [x] Slice 2: `list_notes` and `get_note` commands; frontend wrappers in `services/api.ts`
 - [x] Slice 2: pull half of `sync.rs` (walk all pages, upsert synced rows, remove remotely deleted synced rows) and `sync_now`; emit `notes-changed`
 - [x] Slice 2: 30/70 Notes page with `NoteList` and read-only view (plain text, markdown preview via `react-markdown`)
-- [ ] Slice 3: `create_note`, `save_note` (validation and tag normalisation), `delete_note`, `list_tag_names` commands
-- [ ] Slice 3: `NoteForm` (title, format, body, Delete) with debounced save and Markdown Preview/Edit toggle; add shadcn `textarea`, `select`, `dialog`
-- [ ] Slice 3: `TagInput` using shadcn Command + Popover with autocomplete from local tags
+- [x] Slice 3: `create_note`, `save_note` (validation and tag normalisation), `delete_note`, `list_tag_names` commands
+- [x] Slice 3: `NoteForm` (title, format, body, Delete) with debounced save and Markdown Preview/Edit toggle; add shadcn `textarea`, `select`, `dialog`
+- [x] Slice 3: `TagInput` using shadcn Command + Popover with autocomplete from local tags
 - [ ] Slice 4: push half of `sync.rs` (POST/PUT/DELETE, `last_error`, stop on network error or 401)
 - [ ] Slice 4: extract the 401 handling from `api_request` into a shared helper and reuse it in sync
 - [ ] Slice 4: unsynced indicator in list and note with error reason; wipe local DB when the base URL changes

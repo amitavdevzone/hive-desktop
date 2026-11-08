@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { listNotes, syncNow, type Note } from "@/services/api";
+import { createNote, deleteNote, listNotes, syncNow, type Note } from "@/services/api";
+import { Button } from "@/components/ui/button";
 import { NoteList } from "./NoteList";
-import { NoteView } from "./NoteView";
+import { NoteForm } from "./NoteForm";
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -22,16 +23,33 @@ export default function NotesPage() {
     };
   }, [load]);
 
+  const onNew = () =>
+    createNote().then((n) => {
+      setSelectedId(n.id);
+      load();
+    });
+
+  const onDelete = (id: number) =>
+    deleteNote(id).then(() => {
+      setSelectedId(null);
+      load();
+    });
+
   const selected = notes.find((n) => n.id === selectedId) ?? null;
 
   return (
     <main className="flex h-full">
       <aside className="w-[30%] overflow-y-auto border-r border-border">
+        <div className="border-b border-border p-2">
+          <Button className="w-full" onClick={onNew}>
+            New note
+          </Button>
+        </div>
         <NoteList notes={notes} selectedId={selectedId} onSelect={setSelectedId} />
       </aside>
       <section className="w-[70%] overflow-y-auto">
         {selected ? (
-          <NoteView key={selected.id} note={selected} />
+          <NoteForm key={selected.id} note={selected} onSaved={load} onDelete={() => onDelete(selected.id)} />
         ) : (
           <p className="p-6 text-sm text-muted-foreground">Select a note.</p>
         )}
