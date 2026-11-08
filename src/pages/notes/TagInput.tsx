@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { listTagNames } from "@/services/api";
-import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export function TagInput({ tags, onChange }: { tags: string[]; onChange: (t: string[]) => void }) {
@@ -17,50 +17,50 @@ export function TagInput({ tags, onChange }: { tags: string[]; onChange: (t: str
     const t = raw.trim().toLowerCase();
     if (t && !tags.includes(t)) onChange([...tags, t]);
     setQuery("");
+    setOpen(false);
   };
-  const suggestions = known.filter((k) => !tags.includes(k));
+  const suggestions = known.filter((k) => !tags.includes(k) && k.includes(query.trim().toLowerCase()));
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-2">
       {tags.map((t) => (
-        <span key={t} className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-foreground">
+        <span
+          key={t}
+          className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-foreground"
+        >
           {t}
           <button aria-label={`Remove ${t}`} onClick={() => onChange(tags.filter((x) => x !== t))}>
-            <X className="h-3 w-3" />
+            <X className="size-3.5" />
           </button>
         </span>
       ))}
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverAnchor asChild>
-          <div className="w-40">
-            <Command shouldFilter>
-              <CommandInput
-                placeholder="Add tag…"
-                value={query}
-                onValueChange={setQuery}
-                onFocus={() => setOpen(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && query.trim()) {
-                    e.preventDefault();
-                    add(query);
-                  }
-                }}
-              />
-            </Command>
-          </div>
-        </PopoverAnchor>
-        <PopoverContent className="w-40 p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-          <Command>
+        <PopoverTrigger asChild>
+          <button className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <Plus className="size-3.5" /> Add tag
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-52 p-0">
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder="Tag name…"
+              value={query}
+              onValueChange={setQuery}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && query.trim()) {
+                  e.preventDefault();
+                  add(query);
+                }
+              }}
+            />
             <CommandList>
               <CommandEmpty>Enter to add “{query.trim()}”</CommandEmpty>
               <CommandGroup>
-                {suggestions
-                  .filter((k) => k.includes(query.trim().toLowerCase()))
-                  .map((k) => (
-                    <CommandItem key={k} value={k} onSelect={() => add(k)}>
-                      {k}
-                    </CommandItem>
-                  ))}
+                {suggestions.map((k) => (
+                  <CommandItem key={k} value={k} onSelect={() => add(k)}>
+                    {k}
+                  </CommandItem>
+                ))}
               </CommandGroup>
             </CommandList>
           </Command>

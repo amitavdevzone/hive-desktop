@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { CloudUpload, FileText, Trash2 } from "lucide-react";
 import { saveNote, type Note } from "@/services/api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MarkdownEditor } from "./MarkdownEditor";
+import { formatDate } from "./NoteList";
 import { TagInput } from "./TagInput";
 
 /** Edits a note, saving to SQLite after a short pause. Remount (key) per note. */
@@ -55,16 +57,24 @@ export function NoteForm({
 
   const md = format === "markdown";
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <div className="flex gap-2">
-        <Input value={title} onChange={(e) => edit(setTitle, "title")(e.target.value)} placeholder="Title" />
+    <div className="flex h-full flex-col gap-4">
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <FileText className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-11"
+            value={title}
+            onChange={(e) => edit(setTitle, "title")(e.target.value)}
+            placeholder="Title"
+          />
+        </div>
         <Select
           value={format}
           onValueChange={(v) => {
             edit(setFormat, "format")(v as Note["format"]);
           }}
         >
-          <SelectTrigger className="w-36 data-[size=default]:h-10">
+          <SelectTrigger className="w-40 data-[size=default]:h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -72,30 +82,41 @@ export function NoteForm({
             <SelectItem value="markdown">Markdown</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="destructive" onClick={() => setConfirm(true)}>
-          Delete
+        <Button variant="destructive" size="icon" className="size-10" aria-label="Delete note" onClick={() => setConfirm(true)}>
+          <Trash2 />
         </Button>
       </div>
 
-      {md ? (
-        <div className="min-h-0 flex-1 basis-0 space-y-2 rounded-md border border-border bg-input p-3 [&_.ProseMirror]:min-h-full [&_.ProseMirror]:outline-none overflow-y-auto font-serif text-base text-foreground [&_code]:font-[inherit] [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1]:font-bold [&_h2]:font-semibold [&_h3]:font-semibold [&_h1]:mt-4 [&_h2]:mt-3 [&_h3]:mt-2 [&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_ul]:list-disc [&_ul]:pl-5">
-          <MarkdownEditor key={format} initial={text} onChange={edit(setText, "text")} />
-        </div>
-      ) : (
-        <Textarea
-          className="min-h-0 flex-1 font-mono"
-          value={text}
-          onChange={(e) => edit(setText, "text")(e.target.value)}
-        />
-      )}
+      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card">
+        {md ? (
+          <div className="min-h-0 flex-1 basis-0 space-y-2 overflow-y-auto p-6 font-serif text-base text-foreground [&_.ProseMirror]:min-h-full [&_.ProseMirror]:outline-none [&_code]:font-[inherit] [&_h1]:mt-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h2]:mt-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:text-xl [&_h3]:font-semibold [&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_hr]:my-4 [&_hr]:border-border [&_ul]:list-disc [&_ul]:pl-5">
+            <MarkdownEditor key={format} initial={text} onChange={edit(setText, "text")} />
+          </div>
+        ) : (
+          <Textarea
+            className="min-h-0 flex-1 resize-none rounded-2xl border-0 bg-transparent p-6 font-mono shadow-none focus-visible:ring-0"
+            value={text}
+            onChange={(e) => edit(setText, "text")(e.target.value)}
+          />
+        )}
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      {note.status !== "synced" && (
-        <p className={note.last_error ? "text-sm text-destructive" : "text-sm text-primary"}>
-          Unsynced{note.last_error && `: ${note.last_error}`}
-        </p>
-      )}
-      <TagInput tags={tags} onChange={edit(setTags, "tags")} />
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-3 text-sm">
+          <div className="flex items-center gap-3 text-muted-foreground">
+            {note.status !== "synced" && (
+              <>
+                <span className={note.last_error ? "flex items-center gap-1.5 text-destructive" : "flex items-center gap-1.5 text-primary"}>
+                  <CloudUpload className="size-4" />
+                  Unsynced{note.last_error && `: ${note.last_error}`}
+                </span>
+                <span className="h-4 w-px bg-border" />
+              </>
+            )}
+            <span>Last updated: {formatDate(note.updated_at)}</span>
+            {error && <span className="text-destructive">{error}</span>}
+          </div>
+          <TagInput tags={tags} onChange={edit(setTags, "tags")} />
+        </div>
+      </div>
 
       <Dialog open={confirm} onOpenChange={setConfirm}>
         <DialogContent>
