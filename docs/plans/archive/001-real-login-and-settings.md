@@ -1,7 +1,7 @@
 # Real login, base URL settings, placeholder dashboard
 
 Ticket: #1 (https://github.com/amitavdevzone/hive-desktop/issues/1)
-Status: planned
+Status: done
 Date: 2026-11-07
 
 ## Summary
