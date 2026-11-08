@@ -46,3 +46,7 @@ export const saveNote = (n: Pick<Note, "id" | "title" | "text" | "format" | "tag
 export const deleteNote = (id: number) => invoke<void>("delete_note", { id });
 
 export const listTagNames = () => invoke<string[]>("list_tag_names");
+
+export const getAutoSync = () => invoke<boolean>("get_auto_sync");
+
+export const setAutoSync = (enabled: boolean) => invoke<void>("set_auto_sync", { enabled });

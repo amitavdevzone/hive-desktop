@@ -143,6 +143,40 @@ pub fn delete_note(conn: &Connection, id: i64) -> Result<(), String> {
     Ok(())
 }
 
+/// Drop every note (the server changed, so the cache is someone else's data).
+pub fn clear(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute("DELETE FROM notes", []).map(|_| ())
+}
+
+/// Rows waiting to be pushed, oldest first.
+pub fn pending(conn: &Connection) -> rusqlite::Result<Vec<Note>> {
+    conn.prepare(&format!(
+        "SELECT {COLS} FROM notes WHERE status IN ('dirty','deleted') ORDER BY id"
+    ))?
+    .query_map([], from_row)?
+    .collect()
+}
+
+/// After a successful push. If the note was edited while the request was in
+/// flight (`updated_at` moved), it stays dirty so the newer edit is pushed next.
+pub fn mark_pushed(conn: &Connection, id: i64, remote_id: i64, pushed_at: &str) -> rusqlite::Result<()> {
+    conn.execute(
+        "UPDATE notes SET remote_id=?1, last_error=NULL,
+         status = CASE WHEN updated_at=?3 THEN 'synced' ELSE 'dirty' END WHERE id=?2",
+        (remote_id, id, pushed_at),
+    )
+    .map(|_| ())
+}
+
+/// A pushed delete: the tombstone goes, unless it was somehow revived.
+pub fn drop_deleted(conn: &Connection, id: i64) -> rusqlite::Result<()> {
+    conn.execute("DELETE FROM notes WHERE id=?1 AND status='deleted'", [id]).map(|_| ())
+}
+
+pub fn mark_failed(conn: &Connection, id: i64, msg: &str) -> rusqlite::Result<()> {
+    conn.execute("UPDATE notes SET last_error=?1 WHERE id=?2", (msg, id)).map(|_| ())
+}
+
 pub fn list_tag_names(conn: &Connection) -> rusqlite::Result<Vec<String>> {
     conn.prepare(
         "SELECT DISTINCT j.value FROM notes, json_each(notes.tags) j
@@ -192,6 +226,35 @@ mod tests {
         assert!(save_note(&c, id, "t", "", "html", &[]).is_err());
         assert!(save_note(&c, 99, "t", "", "plain", &[]).is_err());
         assert_eq!(list_tag_names(&c).unwrap(), ["office", "server"]);
+    }
+
+    #[test]
+    fn push_bookkeeping() {
+        let c = mem();
+        let a = create_note(&c).unwrap();
+        let b = create_note(&c).unwrap();
+        assert_eq!(pending(&c).unwrap().len(), 2);
+
+        mark_pushed(&c, a.id, 10, &a.updated_at).unwrap();
+        let a2 = get_note(&c, a.id).unwrap().unwrap();
+        assert_eq!((a2.status.as_str(), a2.remote_id), ("synced", Some(10)));
+
+        // edited during the request: remote_id recorded, still dirty
+        mark_pushed(&c, b.id, 11, "1999-01-01T00:00:00Z").unwrap();
+        assert_eq!(get_note(&c, b.id).unwrap().unwrap().status, "dirty");
+
+        mark_failed(&c, b.id, "The tags field is required.").unwrap();
+        assert_eq!(
+            get_note(&c, b.id).unwrap().unwrap().last_error.as_deref(),
+            Some("The tags field is required.")
+        );
+
+        delete_note(&c, a.id).unwrap();
+        assert_eq!(pending(&c).unwrap().len(), 2);
+        drop_deleted(&c, a.id).unwrap();
+        assert!(get_note(&c, a.id).unwrap().is_none());
+        clear(&c).unwrap();
+        assert!(pending(&c).unwrap().is_empty());
     }
 
     #[test]
