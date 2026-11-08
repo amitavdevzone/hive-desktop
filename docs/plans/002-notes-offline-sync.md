@@ -30,8 +30,8 @@ Add a top navigation and an offline-first Notes screen. Notes are synced from th
 - [x] Slice 4: extract the 401 handling from `api_request` into a shared helper and reuse it in sync
 - [x] Slice 4: unsynced indicator in list and note with error reason; wipe local DB when the base URL changes
 - [x] Slice 4: `auto_sync` setting (get/set commands, in `settings.json`), top-bar toggle and Sync button, 2-minute timer in `AppLayout`
-- [ ] Rust unit tests on in-memory SQLite; `cargo check`/`clippy`/`test`, `npm run build`/`lint`
-- [ ] Update `docs/wiki/index.md` with a Notes section
+- [x] Rust unit tests on in-memory SQLite; `cargo check`/`clippy`/`test`, `npm run build`/`lint`
+- [x] Update `docs/wiki/index.md` with a Notes section
 
 ## Acceptance criteria
 1. AC1: The top nav shows the HIVE logo and a Notes link on authenticated pages; the logo opens `/dashboard` and Notes opens `/notes`.

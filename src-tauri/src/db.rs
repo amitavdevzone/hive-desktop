@@ -229,6 +229,15 @@ mod tests {
     }
 
     #[test]
+    fn editing_an_older_note_moves_it_to_the_top() {
+        let c = mem();
+        c.execute("INSERT INTO notes (title, updated_at) VALUES ('old', '2020-01-01T00:00:00Z')", []).unwrap();
+        c.execute("INSERT INTO notes (title, updated_at) VALUES ('newer', '2021-01-01T00:00:00Z')", []).unwrap();
+        save_note(&c, 1, "old", "edited", "plain", &[]).unwrap();
+        assert_eq!(list_notes(&c).unwrap()[0].title, "old");
+    }
+
+    #[test]
     fn push_bookkeeping() {
         let c = mem();
         let a = create_note(&c).unwrap();
