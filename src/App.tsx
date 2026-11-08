@@ -5,6 +5,8 @@ import { isAuthenticated } from "@/services/api";
 import LoginPage from "@/pages/login";
 import SettingsPage from "@/pages/settings";
 import DashboardPage from "@/pages/dashboard";
+import NotesPage from "@/pages/notes";
+import AppLayout from "@/components/AppLayout";
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -21,7 +23,10 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route element={<AppLayout />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/notes" element={<NotesPage />} />
+      </Route>
     </Routes>
   );
 }

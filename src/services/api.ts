@@ -19,3 +19,21 @@ export const isAuthenticated = () => invoke<boolean>("is_authenticated");
 export const getBaseUrl = () => invoke<string | null>("get_base_url");
 
 export const setBaseUrl = (url: string) => invoke<void>("set_base_url", { url });
+
+export type Note = {
+  id: number;
+  remote_id: number | null;
+  title: string;
+  text: string;
+  format: "plain" | "markdown";
+  tags: string[];
+  status: "synced" | "dirty" | "deleted";
+  last_error: string | null;
+  updated_at: string;
+};
+
+export const listNotes = () => invoke<Note[]>("list_notes");
+
+export const getNote = (id: number) => invoke<Note | null>("get_note", { id });
+
+export const syncNow = () => invoke<void>("sync_now");
