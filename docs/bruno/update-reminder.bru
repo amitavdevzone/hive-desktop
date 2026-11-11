@@ -1,0 +1,22 @@
+meta {
+  name: update reminder
+  type: http
+  seq: 14
+}
+
+put {
+  url: {{baseUrl}}/api/reminders/1
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+body:json {
+  {
+    "title": "Drink water (updated)",
+    "interval_minutes": 45
+  }
+}

@@ -1,0 +1,23 @@
+meta {
+  name: create reminder recurring
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/reminders
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+body:json {
+  {
+    "title": "Drink water",
+    "type": "recurring",
+    "interval_minutes": 30
+  }
+}
