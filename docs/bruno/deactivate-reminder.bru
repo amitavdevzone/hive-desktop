@@ -1,0 +1,21 @@
+meta {
+  name: deactivate reminder
+  type: http
+  seq: 15
+}
+
+put {
+  url: {{baseUrl}}/api/reminders/1
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+body:json {
+  {
+    "is_active": false
+  }
+}

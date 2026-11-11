@@ -59,7 +59,7 @@ export default function NotesPage() {
         </div>
       </header>
       <div className="flex min-h-0 flex-1 gap-4 p-4">
-        <aside className="flex w-[20%] min-w-52 flex-col gap-3">
+        <aside className="flex w-[15%] min-w-52 flex-col gap-3">
           <Button className="w-full" onClick={onNew}>
             <Plus /> New note
           </Button>

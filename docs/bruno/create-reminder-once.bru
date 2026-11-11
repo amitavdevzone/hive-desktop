@@ -1,0 +1,23 @@
+meta {
+  name: create reminder once
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/reminders
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+body:json {
+  {
+    "title": "Follow up with ABC",
+    "type": "once",
+    "remind_at": "2026-12-01T14:00:00+05:30"
+  }
+}

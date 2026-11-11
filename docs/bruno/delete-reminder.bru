@@ -1,0 +1,16 @@
+meta {
+  name: delete reminder
+  type: http
+  seq: 16
+}
+
+delete {
+  url: {{baseUrl}}/api/reminders/1
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
