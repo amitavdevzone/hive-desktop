@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
 import { HiveLogo } from "@/components/HiveLogo";
-import { getAutoSync, setAutoSync, syncNow } from "@/services/api";
+import { getAutoSync, refreshReminders, setAutoSync, syncNow } from "@/services/api";
 
 /** Shared with pages through the router's outlet context. */
 export type SyncControls = {
@@ -10,6 +10,9 @@ export type SyncControls = {
   syncing: boolean;
   sync: () => void;
 };
+
+const navClass = ({ isActive }: { isActive: boolean }) =>
+  `rounded-lg px-3 py-1.5 text-sm font-medium ${isActive ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}`;
 
 const SYNC_INTERVAL_MS = 2 * 60 * 1000;
 
@@ -25,7 +28,13 @@ export default function AppLayout() {
     setSyncing(true);
     // Failures are shown on the notes themselves (last_error); 401 routes to login.
     syncNow().catch(() => {}).finally(() => setSyncing(false));
+    refreshReminders().catch(() => {});
   };
+
+  // Fill the reminder cache on startup, independent of the notes auto-sync setting.
+  useEffect(() => {
+    refreshReminders().catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!auto) return;
@@ -46,9 +55,12 @@ export default function AppLayout() {
           <HiveLogo className="h-8 w-8" />
           <span className="text-lg font-semibold uppercase tracking-[0.2em] text-foreground">Hive</span>
         </Link>
-        <Link to="/notes" className="text-sm text-muted-foreground hover:text-primary">
+        <NavLink to="/notes" className={navClass}>
           Notes
-        </Link>
+        </NavLink>
+        <NavLink to="/reminders" className={navClass}>
+          Reminders
+        </NavLink>
       </nav>
       <div className="min-h-0 flex-1">
         <Outlet context={{ auto, toggleAuto, syncing, sync } satisfies SyncControls} />

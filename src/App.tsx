@@ -6,6 +6,7 @@ import LoginPage from "@/pages/login";
 import SettingsPage from "@/pages/settings";
 import DashboardPage from "@/pages/dashboard";
 import NotesPage from "@/pages/notes";
+import RemindersPage from "@/pages/reminders";
 import AppLayout from "@/components/AppLayout";
 
 function AppRoutes() {
@@ -26,6 +27,7 @@ function AppRoutes() {
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/notes" element={<NotesPage />} />
+        <Route path="/reminders" element={<RemindersPage />} />
       </Route>
     </Routes>
   );

@@ -7,7 +7,7 @@ mod sync;
 
 use tauri::{
     AppHandle, Manager,
-    menu::{Menu, MenuItem},
+    menu::{CheckMenuItem, Menu, MenuItem},
     tray::TrayIconBuilder,
 };
 
@@ -35,11 +35,27 @@ pub fn run() {
             // Tray keeps the app (and the reminder scheduler) alive with the window hidden.
             let show = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let notif = CheckMenuItem::with_id(
+                app,
+                "notifications",
+                "Notifications",
+                true,
+                commands::settings::notifications_enabled(app.handle()),
+                None::<&str>,
+            )?;
+            let notif_item = notif.clone();
             let mut tray = TrayIconBuilder::new()
-                .menu(&Menu::with_items(app, &[&show, &quit])?)
-                .on_menu_event(|app, e| match e.id.as_ref() {
+                .menu(&Menu::with_items(app, &[&notif, &show, &quit])?)
+                .on_menu_event(move |app, e| match e.id.as_ref() {
                     "show" => show_main(app),
                     "quit" => app.exit(0),
+                    // The item flips its own check mark on click; persist what it shows.
+                    "notifications" => {
+                        let _ = commands::settings::set_notifications(
+                            app,
+                            notif_item.is_checked().unwrap_or(true),
+                        );
+                    }
                     _ => {}
                 });
             if let Some(icon) = app.default_window_icon() {
@@ -69,7 +85,8 @@ pub fn run() {
             commands::notes::save_note,
             commands::notes::delete_note,
             commands::notes::list_tag_names,
-            commands::reminders::refresh_reminders
+            commands::reminders::refresh_reminders,
+            commands::reminders::reminder_last_fired
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

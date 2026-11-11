@@ -43,6 +43,13 @@ Layers: React screens -> one frontend API service -> Tauri commands -> Rust (HTT
   - Only replay user-initiated requests, not background polling.
 - **Local data**: SQLite owned by Rust (`rusqlite` or `tauri-plugin-sql`) for app data and settings. Secrets only in the keychain. Frontend has no direct filesystem access.
 
+## Reminders and notifications
+
+- Scheduler: a Rust background thread (`src-tauri/src/reminders.rs`, 30s tick) reads the SQLite `reminders` cache and fires notifications via `tauri-plugin-notification`. Never schedule notifications from React timers (the hidden webview is throttled).
+- `due()` is a pure function over unix seconds; keep decisions there and unit-tested. `last_fired_at` is local-only and is kept across pulls unless `remind_at`/`interval_minutes` change.
+- CRUD goes through `api_request`; after a write call `refresh_reminders` to re-pull the active ones. No CRUD Tauri commands.
+- System tray (in `lib.rs`) has Notifications (global on/off, stored in `settings.json`), Show and Quit; closing the window hides it. Linux needs `libayatana-appindicator3`.
+
 ## Folder structure
 
 ```
