@@ -8,8 +8,12 @@ mod sync;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             use tauri::Manager;
+            use tauri_plugin_notification::NotificationExt;
+            // macOS asks the user once; elsewhere this is a no-op grant.
+            let _ = app.notification().request_permission();
             let path = app.path().app_data_dir()?.join("hive.db");
             app.manage(db::open(&path)?);
             Ok(())

@@ -14,7 +14,7 @@ Desktop side of the reminders API (backend: GH-3, `003-reminders-api.md`). A Rem
 - Reminders page: list, All/Active filter, add/edit with one form, toggle active, delete.
 
 ## Tasks
-- [ ] Slice 1, Rust: add `tauri-plugin-notification` (Cargo, `lib.rs`, `capabilities/default.json` `notification:default`); request permission at startup (macOS)
+- [x] Slice 1, Rust: add `tauri-plugin-notification` (Cargo, `lib.rs`, `capabilities/default.json` `notification:default`); request permission at startup (macOS)
 - [ ] Slice 1: `reminders` table in `db.rs` `SCHEMA` (`remote_id` PK, title, notes, type, remind_at, interval_minutes, is_active, created_at, last_fired_at)
 - [ ] Slice 1: `reminders.rs` with `pull_reminders` (GET `/api/reminders?active=1` via `send_authed`, walk pages, upsert keeping local `last_fired_at`, prune missing) and `refresh_reminders` command registered in `lib.rs`
 - [ ] Slice 1: pure `due()` decision fn + `cargo test` unit tests (once, recurring, overdue, stale)
