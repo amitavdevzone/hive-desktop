@@ -17,9 +17,9 @@ Desktop side of the reminders API (backend: GH-3, `003-reminders-api.md`). A Rem
 - [x] Slice 1, Rust: add `tauri-plugin-notification` (Cargo, `lib.rs`, `capabilities/default.json` `notification:default`); request permission at startup (macOS)
 - [x] Slice 1: `reminders` table in `db.rs` `SCHEMA` (`remote_id` PK, title, notes, type, remind_at, interval_minutes, is_active, created_at, last_fired_at)
 - [x] Slice 1: `reminders.rs` with `pull_reminders` (GET `/api/reminders?active=1` via `send_authed`, walk pages, upsert keeping local `last_fired_at`, prune missing) and `refresh_reminders` command registered in `lib.rs`
-- [ ] Slice 1: pure `due()` decision fn + `cargo test` unit tests (once, recurring, overdue, stale)
-- [ ] Slice 1: scheduler loop (30s tick) firing notifications; start it from `setup`
-- [ ] Slice 1: tray (`tray-icon` feature on `tauri`) with Show/Quit; hide on `CloseRequested`
+- [x] Slice 1: pure `due()` decision fn + `cargo test` unit tests (once, recurring, overdue, stale)
+- [x] Slice 1: scheduler loop (30s tick) firing notifications; start it from `setup`
+- [x] Slice 1: tray (`tray-icon` feature on `tauri`) with Show/Quit; hide on `CloseRequested`
 - [ ] Slice 1: manual check with a 1-minute recurring reminder created in Bruno
 - [ ] Slice 2: `api.ts` types and wrappers (`Reminder`, list/create/update/delete via `request()`, `refreshReminders`)
 - [ ] Slice 2: `npx shadcn@latest add switch`
