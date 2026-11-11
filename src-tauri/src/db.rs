@@ -18,6 +18,17 @@ CREATE TABLE IF NOT EXISTS notes (
     status     TEXT NOT NULL DEFAULT 'dirty',
     last_error TEXT,
     updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS reminders (
+    remote_id        INTEGER PRIMARY KEY,
+    title            TEXT NOT NULL,
+    notes            TEXT,
+    type             TEXT NOT NULL,
+    remind_at        TEXT,
+    interval_minutes INTEGER,
+    is_active        INTEGER NOT NULL DEFAULT 1,
+    created_at       TEXT NOT NULL,
+    last_fired_at    TEXT
 );";
 
 pub fn open(path: &std::path::Path) -> Result<Db, String> {
