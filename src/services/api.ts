@@ -50,3 +50,42 @@ export const listTagNames = () => invoke<string[]>("list_tag_names");
 export const getAutoSync = () => invoke<boolean>("get_auto_sync");
 
 export const setAutoSync = (enabled: boolean) => invoke<void>("set_auto_sync", { enabled });
+
+export type Reminder = {
+  id: number;
+  title: string;
+  notes: string | null;
+  type: "once" | "recurring";
+  remind_at: string | null;
+  interval_minutes: number | null;
+  is_active: boolean;
+  created_at: string;
+};
+
+/** Writable fields; send `null` for the field that doesn't match `type`. */
+export type ReminderInput = Partial<Omit<Reminder, "id" | "created_at">>;
+
+type Page<T> = { data: T[]; meta?: { last_page?: number } };
+
+/** Every reminder (active or not), walking all pages. */
+export async function listReminders() {
+  const all: Reminder[] = [];
+  for (let page = 1; ; page++) {
+    const res = await request<Page<Reminder>>("GET", `/api/reminders?page=${page}`);
+    all.push(...res.data);
+    if (page >= (res.meta?.last_page ?? 1)) return all;
+  }
+}
+
+export const createReminder = (r: ReminderInput) => request("POST", "/api/reminders", r);
+
+export const updateReminder = (id: number, r: ReminderInput) =>
+  request("PUT", `/api/reminders/${id}`, r);
+
+export const deleteReminder = (id: number) => request("DELETE", `/api/reminders/${id}`);
+
+/** Re-pull active reminders into the Rust cache the scheduler reads. */
+export const refreshReminders = () => invoke<void>("refresh_reminders");
+
+/** id -> ISO time the local scheduler last fired it. */
+export const reminderLastFired = () => invoke<Record<number, string>>("reminder_last_fired");

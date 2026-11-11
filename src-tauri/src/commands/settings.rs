@@ -10,6 +10,8 @@ struct Settings {
     base_url: Option<String>,
     /// None = never set = auto.
     auto_sync: Option<bool>,
+    /// Global reminder-notification switch. None = never set = on.
+    notifications: Option<bool>,
 }
 
 fn settings_path(app: &AppHandle) -> Result<PathBuf, String> {
@@ -84,6 +86,17 @@ pub fn set_auto_sync(app: AppHandle, enabled: bool) -> Result<(), String> {
     let path = settings_path(&app)?;
     let mut settings = load(&path);
     settings.auto_sync = Some(enabled);
+    save(&path, &settings)
+}
+
+pub fn notifications_enabled(app: &AppHandle) -> bool {
+    settings_path(app).map(|p| load(&p).notifications.unwrap_or(true)).unwrap_or(true)
+}
+
+pub fn set_notifications(app: &AppHandle, enabled: bool) -> Result<(), String> {
+    let path = settings_path(app)?;
+    let mut settings = load(&path);
+    settings.notifications = Some(enabled);
     save(&path, &settings)
 }
 

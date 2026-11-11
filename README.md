@@ -16,6 +16,8 @@ A desktop developer assistant built with Tauri 2 (Rust) and React.
     libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
   ```
 
+  `libayatana-appindicator3` is required for the system tray (reminders keep running there when the window is closed).
+
   Other distros and macOS/Windows: see the [Tauri prerequisites](https://tauri.app/start/prerequisites/).
 
 ### Run

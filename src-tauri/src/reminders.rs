@@ -144,12 +144,17 @@ pub fn start(app: AppHandle) {
     use tauri_plugin_notification::NotificationExt;
     std::thread::spawn(move || {
         loop {
-            let fire = app
+            // Muted from the tray: skip the pass entirely so nothing is marked
+            // fired; due reminders fire (or go stale) once notifications are back on.
+            let on = crate::commands::settings::notifications_enabled(&app);
+            let fire = on
+                .then(|| app
                 .state::<crate::db::Db>()
                 .0
                 .lock()
                 .ok()
-                .and_then(|c| tick(&c).ok())
+                .and_then(|c| tick(&c).ok()))
+                .flatten()
                 .unwrap_or_default();
             for (title, notes) in fire {
                 let mut n = app.notification().builder().title(title);

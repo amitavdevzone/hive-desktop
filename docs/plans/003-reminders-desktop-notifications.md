@@ -20,12 +20,14 @@ Desktop side of the reminders API (backend: GH-3, `003-reminders-api.md`). A Rem
 - [x] Slice 1: pure `due()` decision fn + `cargo test` unit tests (once, recurring, overdue, stale)
 - [x] Slice 1: scheduler loop (30s tick) firing notifications; start it from `setup`
 - [x] Slice 1: tray (`tray-icon` feature on `tauri`) with Show/Quit; hide on `CloseRequested`
-- [ ] Slice 1: manual check with a 1-minute recurring reminder created in Bruno
-- [ ] Slice 2: `api.ts` types and wrappers (`Reminder`, list/create/update/delete via `request()`, `refreshReminders`)
-- [ ] Slice 2: `npx shadcn@latest add switch`
-- [ ] Slice 2: `pages/reminders/index.tsx`, `ReminderList.tsx`, `ReminderForm.tsx` (per `design.md`)
-- [ ] Slice 2: route `/reminders` in `App.tsx`, nav link in `AppLayout.tsx`, call `refreshReminders` on the 2-min sync tick and after writes
-- [ ] Slice 3: wiki section, README/AGENTS notes (Linux needs `libayatana-appindicator3`), archive plan
+- [x] Slice 1: manual check with a 1-minute recurring reminder created in Bruno
+- [x] Slice 2: `api.ts` types and wrappers (`Reminder`, list/create/update/delete via `request()`, `refreshReminders`)
+- [x] Slice 2: `npx shadcn@latest add switch`
+- [x] Slice 2: `pages/reminders/index.tsx`, `ReminderList.tsx`, `ReminderForm.tsx` (per `design.md`)
+- [x] Slice 2: route `/reminders` in `App.tsx`, nav link in `AppLayout.tsx`, call `refreshReminders` on the 2-min sync tick and after writes
+- [x] Slice 2 (added): Reminders page restyled to the mockup: stat tiles, Upcoming/Recurring/Past/Paused sections, "Next: in N min" badge (Rust `reminder_last_fired`), delete confirmation, lighter dialog surface
+- [x] Slice 2 (added): global notifications On/Off in the tray (`CheckMenuItem`, persisted as `notifications` in `settings.json`; scheduler skips passes while off)
+- [x] Slice 3: wiki section, README/AGENTS notes (Linux needs `libayatana-appindicator3`), archive plan
 
 ## Acceptance criteria
 1. AC1: Active reminders are pulled and cached on startup (after auth), after each UI write, and on the 2-min sync tick; inactive or deleted ones leave the cache.
@@ -40,13 +42,15 @@ Desktop side of the reminders API (backend: GH-3, `003-reminders-api.md`). A Rem
 10. AC10: The Reminders page lists reminders with All/Active filter, type summary ("Once, <date>" / "Every N min") and an empty state.
 11. AC11: The form creates once/recurring reminders (ISO 8601 with offset) and shows 422 field errors.
 12. AC12: The same form edits; changing type sends the matching field and null for the other.
-13. AC13: The user can toggle active and delete from the list.
+13. AC13: The user can toggle active and delete from the list; delete asks for confirmation.
+14. AC14: The tray has a Notifications check item that turns all reminder notifications on/off without opening the app. The choice persists across restarts; while off nothing fires or is marked fired, and on re-enable normal `due()` rules apply.
 
 ## Test cases
 - AC2 -> Given a cached once reminder with `remind_at` 1 min ago and no `last_fired_at`, when the scheduler ticks, then one notification fires and `last_fired_at` is set; next tick fires nothing.
 - AC3 -> Given `remind_at` 3h ago, fires once; given 30h ago, no notification but `last_fired_at` is set. (`due()` unit tests)
 - AC4/AC5 -> Given interval 30 and `last_fired_at` 31 min ago, `due()` is true and next fire is now + 30 min; given 10 min ago, false. (unit tests)
 - AC1/AC6/AC7 -> Pull upsert test: row stays after pull keeps `last_fired_at`; changed `remind_at` clears it; id absent from server is pruned.
+- AC14 -> Manual: untick Notifications in the tray, a due reminder stays silent; restart the app, it stays off; tick it again, due reminders fire.
 - AC8, AC9 -> Manual: disconnect network, a cached 1-min recurring reminder still fires; close window, it still fires; tray Show restores, Quit exits.
 - AC10-AC13 -> Manual in `npm run tauri dev` against the local API: list/filter/empty state, create once and recurring, trigger a 422, edit with type change, toggle, delete.
 - Also: `cargo check && cargo clippy`, `npm run build`, `npm run lint`.
@@ -56,13 +60,14 @@ Desktop side of the reminders API (backend: GH-3, `003-reminders-api.md`). A Rem
 - No CRUD Tauri commands: the UI uses `api_request` (single network path), then calls `refresh_reminders`.
 - Cache is a plain mirror with local-only `last_fired_at`; no dirty/deleted sync status (reminders are small, rarely edited offline).
 - Missed one-timers: fire if < 24h overdue, else mark fired silently. Missed recurring: fire once, restart interval from now (no catch-up burst).
-- Per-reminder `is_active` is the only control; no global notifications setting.
+- Per-reminder `is_active` controls one reminder; a single global Notifications switch lives in the tray (added after the original plan), stored in `settings.json`, not SQLite. Muting skips the scheduler pass instead of marking reminders fired.
+- The API rejects `null` for the field that doesn't apply to the type, so create omits it; edit sends `null` only when the type changes.
 - New dependency `tauri-plugin-notification` and the `tray-icon` feature on `tauri` (AGENTS.md: ask before adding dependencies; approved by filing this plan).
 - Desktop notification click actions are not delivered to the app, so a click only dismisses.
 - UI follows shadcn + `docs/architecture/design.md`.
 
 ## Out of scope
-- Snooze/acknowledge, daily-at-time or cron schedules, offline edits, notification click actions, autostart at login, global notifications toggle.
+- Snooze/acknowledge, daily-at-time or cron schedules, offline edits, notification click actions, autostart at login.
 
 ## Open questions
 - On logout or `auth-expired`, should cached reminders keep firing or should the cache be cleared? (Default proposal: clear on logout/different account, keep firing on a plain 401 until re-login.)
