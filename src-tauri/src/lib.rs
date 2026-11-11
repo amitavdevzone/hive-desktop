@@ -2,6 +2,7 @@ mod auth;
 mod commands;
 mod db;
 mod http;
+mod reminders;
 mod sync;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -32,7 +33,8 @@ pub fn run() {
             commands::notes::create_note,
             commands::notes::save_note,
             commands::notes::delete_note,
-            commands::notes::list_tag_names
+            commands::notes::list_tag_names,
+            commands::reminders::refresh_reminders
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
